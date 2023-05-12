@@ -8,12 +8,13 @@ import com.sample.persist.entity.CompanyEntity;
 import com.sample.persist.entity.DividendEntity;
 import com.sample.scaper.Scraper;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.Trie;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import javax.annotation.security.DeclareRoles;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CompanyService {
 
+    private final Trie trie;
     private final Scraper scraper;
     private final CompanyRepository companyRepository;
     private final DividendRepository dividendRepository;
@@ -58,5 +60,29 @@ public class CompanyService {
         dividendRepository.saveAll(dividendEntities);
 
         return company;
+    }
+
+
+    public List<String> getCompanyNamesByKeyword(String keyword) {
+        return companyRepository.findByNameStartingWithIgnoreCase(keyword,
+                        PageRequest.of(0, 10))
+                .stream()
+                .map(CompanyEntity::getName)
+                .collect(Collectors.toList());
+    }
+
+    public void addAutoCompleteKeyword(String keyword) {
+        trie.put(keyword, null);
+    }
+
+    public List<String> autoComplete(String keyword) {
+        return (List<String>) trie.prefixMap(keyword).keySet()
+                .stream()
+                .limit(10)
+                .collect(Collectors.toList());
+    }
+
+    public void deleteAutoCompleteKeyword(String keyword) {
+        trie.remove(keyword);
     }
 }
