@@ -24,6 +24,9 @@ spring:
     host: localhost
     port: 6379
 
+  jwt:
+    secret: J2RheW9uZS1zcHJpbmctc2VjdXJpdHkn
+
 scheduler:
   scrap:
     yahoo: "0 0 0 * * *"
